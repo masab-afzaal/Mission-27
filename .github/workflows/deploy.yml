@@ -120,11 +120,6 @@ jobs:
                   TZ: Asia/Karachi
                 volumes:
                   - pgdata:/var/lib/postgresql/data
-                healthcheck:
-                  test: ["CMD-SHELL", "pg_isready -U m27_user -d mission27"]
-                  interval: 10s
-                  timeout: 5s
-                  retries: 5
               backend:
                 image: ghcr.io/${{ env.REPO_LOWER }}/backend:latest
                 container_name: m27_backend
@@ -136,8 +131,7 @@ jobs:
                 env_file:
                   - .env
                 depends_on:
-                  db:
-                    condition: service_healthy
+                  - db
             volumes:
               pgdata:
             EOF
@@ -164,5 +158,9 @@ jobs:
             docker compose down
             docker compose up -d
 
-            # Wait for database to be ready and run migrations
+            # Give containers a moment to initialize
+            echo "Waiting 15 seconds for database initialization..."
+            sleep 15
+
+            # Run migrations
             docker exec m27_backend alembic upgrade head

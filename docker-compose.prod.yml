@@ -12,12 +12,6 @@ services:
       TZ: Asia/Karachi
     volumes:
       - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U m27_user -d mission27"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   backend:
     build:
       context: ./backend
@@ -31,8 +25,7 @@ services:
     env_file:
       - ./backend/.env
     depends_on:
-      db:
-        condition: service_healthy
+      - db
 
 volumes:
   pgdata:
