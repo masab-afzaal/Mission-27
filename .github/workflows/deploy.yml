@@ -69,6 +69,10 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Lowercase Repository Name
+        run: |
+          echo "REPO_LOWER=${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -83,10 +87,10 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./backend
-          dockerfile: Dockerfile
+          file: ./backend/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}/backend:latest
+            ghcr.io/${{ env.REPO_LOWER }}/backend:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -124,7 +128,7 @@ jobs:
                   timeout: 5s
                   retries: 5
               backend:
-                image: ghcr.io/${{ github.repository }}/backend:latest
+                image: ghcr.io/${{ env.REPO_LOWER }}/backend:latest
                 container_name: m27_backend
                 restart: unless-stopped
                 ports:
