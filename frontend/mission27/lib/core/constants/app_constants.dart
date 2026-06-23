@@ -3,7 +3,10 @@ abstract final class AppConstants {
   static const appVersion = '1.0.0';
 
   // ── API ──────────────────────────────────────────────────────────────────
-  static const baseUrl = 'http://localhost:8000/api/v1'; // ADB reverse tcp:8000 tcp:8000
+  static const baseUrl = String.fromEnvironment(
+    'API_URL',
+    defaultValue: 'http://localhost:8000/api/v1',
+  );
   static const connectTimeoutMs = 15000;
   static const receiveTimeoutMs = 30000;
 

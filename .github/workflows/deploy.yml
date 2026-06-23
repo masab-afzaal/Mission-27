@@ -9,6 +9,8 @@ jobs:
   build-and-release-flutter:
     name: Build Flutter Android APK
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -37,13 +39,24 @@ jobs:
       - name: Build APK
         run: |
           cd frontend/mission27
-          flutter build apk --release
+          flutter build apk --release --dart-define=API_URL=http://${{ secrets.VM_IP }}:8000/api/v1
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: mission27-release-apk
           path: frontend/mission27/build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ github.run_number }}
+          name: Release v${{ github.run_number }}
+          files: frontend/mission27/build/app/outputs/flutter-apk/app-release.apk
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   deploy-backend:
     name: Build & Deploy Backend
@@ -55,10 +68,6 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-
-      - name: Lowercase Image Tag
-        run: |
-          echo "IMAGE_TAG=ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')/backend:latest" >> $GITHUB_ENV
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -77,26 +86,23 @@ jobs:
           dockerfile: Dockerfile
           push: true
           tags: |
-            ${{ env.IMAGE_TAG }}
+            ghcr.io/${{ github.repository }}/backend:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: SSH Deploy to Oracle VM
         uses: appleboy/ssh-action@v1.0.3
-        env:
-          IMAGE_TAG: ${{ env.IMAGE_TAG }}
         with:
           host: ${{ secrets.VM_IP }}
           username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
-          envs: IMAGE_TAG
           script: |
             mkdir -p ~/mission_27
             cd ~/mission_27
             
             # Create production docker-compose file dynamically
-            cat << EOF > docker-compose.yml
+            cat << 'EOF' > docker-compose.yml
             version: "3.9"
             services:
               db:
@@ -118,7 +124,7 @@ jobs:
                   timeout: 5s
                   retries: 5
               backend:
-                image: $IMAGE_TAG
+                image: ghcr.io/${{ github.repository }}/backend:latest
                 container_name: m27_backend
                 restart: unless-stopped
                 ports:
