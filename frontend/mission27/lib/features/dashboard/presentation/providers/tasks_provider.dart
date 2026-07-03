@@ -13,6 +13,7 @@ class TaskEntity {
   final String? goalId;
   final String? deadline;
   final bool isCompleted;
+  final bool isDomino;
   final int estimatedMinutes;
   final int actualMinutes;
   final String? domain;
@@ -25,6 +26,7 @@ class TaskEntity {
     this.goalId,
     this.deadline,
     required this.isCompleted,
+    this.isDomino = false,
     required this.estimatedMinutes,
     required this.actualMinutes,
     this.domain,
@@ -38,6 +40,7 @@ class TaskEntity {
         goalId: json['goal_id'] as String?,
         deadline: json['deadline'] as String?,
         isCompleted: json['is_completed'] as bool,
+        isDomino: json['is_domino'] as bool? ?? false,
         estimatedMinutes: json['estimated_minutes'] as int? ?? 0,
         actualMinutes: json['actual_minutes'] as int? ?? 0,
         domain: json['domain'] as String?,
@@ -52,7 +55,10 @@ class TodayTasks extends _$TodayTasks {
     final dio = ref.watch(dioProvider);
     final response = await dio.get('/tasks', queryParameters: {'today': true});
     final list = response.data as List<dynamic>;
-    return list.map((e) => TaskEntity.fromJson(e as Map<String, dynamic>)).toList();
+    final tasks = list.map((e) => TaskEntity.fromJson(e as Map<String, dynamic>)).toList();
+    // Domino first — the one task that makes today a win leads the list
+    tasks.sort((a, b) => (b.isDomino ? 1 : 0) - (a.isDomino ? 1 : 0));
+    return tasks;
   }
 
   Future<void> toggleTask(String taskId, bool isCompleted) async {

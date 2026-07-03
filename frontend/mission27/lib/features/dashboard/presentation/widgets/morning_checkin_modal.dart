@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_typography.dart';
 import '../../../../core/network/api_client.dart';
+import '../providers/tasks_provider.dart';
 
 String _todayKey() {
   final d = DateTime.now();
@@ -125,6 +126,8 @@ class _MorningCheckInModalState extends ConsumerState<MorningCheckInModal> {
             _ratingRow(_energy, (v) => setState(() => _energy = v), ['🔋', '🔋', '⚡', '⚡', '🚀']),
             const SizedBox(height: 24),
             _label("Today's 3 intentions"),
+            const SizedBox(height: 2),
+            const Text('These become your task list for today.', style: TextStyle(color: AppColors.textTertiary, fontSize: 11)),
             const SizedBox(height: 8),
             for (var i = 0; i < 3; i++) ...[
               TextField(
@@ -216,6 +219,8 @@ class _MorningCheckInModalState extends ConsumerState<MorningCheckInModal> {
       // Cache locally so the modal never appears again today
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_todayKey(), true);
+      // Intentions are created as today's tasks server-side — refresh the list
+      ref.invalidate(todayTasksProvider);
       setState(() {
         _xpEarned = resp.data['xp_earned'] ?? 15;
         _done = true;

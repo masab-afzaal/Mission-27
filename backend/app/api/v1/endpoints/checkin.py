@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
 from app.models.analytics import DailySnapshot
+from app.models.task import Task
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
 from app.services.achievement_service import AchievementService
@@ -73,6 +74,26 @@ async def morning_checkin(
         snapshot.morning_mood = body.mood
         snapshot.morning_energy = body.energy
         snapshot.morning_intentions = body.intentions
+
+    # Intentions become real tasks on today's list — one task system, no parallel lists.
+    existing_titles = {
+        t.title.strip().lower()
+        for t in (await db.execute(
+            select(Task).where(Task.user_id == uid, Task.deadline == today)
+        )).scalars().all()
+    }
+    for intention in body.intentions:
+        if intention.strip().lower() not in existing_titles:
+            db.add(Task(
+                user_id=uid,
+                title=intention,
+                deadline=today,
+                is_completed=False,
+                is_domino=False,
+                estimated_minutes=0,
+                actual_minutes=0,
+                xp_reward=10,
+            ))
 
     user_repo = UserRepository(db)
     await user_repo.add_xp(current_user, xp)

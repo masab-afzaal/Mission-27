@@ -15,6 +15,7 @@ class Task(UUIDPrimaryKey, TimestampMixin, Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     deadline: Mapped[date | None] = mapped_column(Date, nullable=True)
     is_completed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    is_domino: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     completed_at: Mapped[date | None] = mapped_column(Date, nullable=True)
     estimated_minutes: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     actual_minutes: Mapped[int] = mapped_column(Integer, default=0, nullable=False)

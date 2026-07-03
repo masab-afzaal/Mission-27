@@ -11,6 +11,14 @@ import '../../features/goals/presentation/pages/goals_page.dart';
 import '../../features/ai_coach/presentation/pages/ai_coach_page.dart';
 import '../../features/pomodoro/presentation/pages/pomodoro_page.dart';
 import '../../features/namaz/presentation/pages/namaz_page.dart';
+import '../../features/habits/presentation/pages/habits_page.dart';
+import '../../features/health/presentation/pages/health_page.dart';
+import '../../features/ielts/presentation/pages/ielts_page.dart';
+import '../../features/ielts/presentation/pages/ielts_speaking_page.dart';
+import '../../features/knowledge/presentation/pages/knowledge_page.dart';
+import '../../features/mastery/presentation/pages/mastery_page.dart';
+import '../../features/mastery/presentation/pages/identities_page.dart';
+import '../../features/social/presentation/pages/social_page.dart';
 import '../shell/main_shell.dart';
 
 part 'app_router.g.dart';
@@ -65,6 +73,14 @@ GoRouter appRouter(Ref ref) {
           GoRoute(path: AppRoutes.aiCoach, pageBuilder: (_, __) => _noTransition(const AICoachPage())),
           GoRoute(path: AppRoutes.pomodoro, pageBuilder: (_, __) => _noTransition(const PomodoroPage())),
           GoRoute(path: AppRoutes.namaz, pageBuilder: (_, __) => _noTransition(const NamazPage())),
+          GoRoute(path: AppRoutes.habits, pageBuilder: (_, __) => _noTransition(const HabitsPage())),
+          GoRoute(path: AppRoutes.health, pageBuilder: (_, __) => _noTransition(const HealthPage())),
+          GoRoute(path: AppRoutes.ielts, pageBuilder: (_, __) => _noTransition(const IELTSPage())),
+          GoRoute(path: AppRoutes.ieltsSpeaking, pageBuilder: (_, __) => _noTransition(const IELTSSpeakingPage())),
+          GoRoute(path: AppRoutes.knowledge, pageBuilder: (_, __) => _noTransition(const KnowledgePage())),
+          GoRoute(path: AppRoutes.mastery, pageBuilder: (_, __) => _noTransition(const MasteryPage())),
+          GoRoute(path: AppRoutes.identities, pageBuilder: (_, __) => _noTransition(const IdentitiesPage())),
+          GoRoute(path: AppRoutes.social, pageBuilder: (_, __) => _noTransition(const SocialPage())),
         ],
       ),
     ],

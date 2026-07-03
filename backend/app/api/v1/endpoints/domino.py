@@ -8,10 +8,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
-from app.models.analytics import DailySnapshot
+from app.models.task import Task
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
+from app.api.v1.endpoints.tasks import (
+    DOMINO_XP,
+    clear_other_dominoes,
+    sync_domino_snapshot,
+    update_goal_progress,
+)
 
+# The domino is no longer its own entity — it is today's Task flagged is_domino.
+# These endpoints are a thin facade kept for the dashboard widget's API shape.
 router = APIRouter(prefix="/domino", tags=["domino"])
 
 
@@ -21,24 +29,19 @@ class DominoSetRequest(BaseModel):
 
 class DominoResponse(BaseModel):
     task: str | None
+    task_id: str | None = None
     done: bool
     xp_earned: int
 
 
-async def _get_or_create_snapshot(db: AsyncSession, user_id: str) -> DailySnapshot:
-    today = date.today()
-    snap = (await db.execute(
-        select(DailySnapshot).where(
-            DailySnapshot.user_id == user_id,
-            DailySnapshot.snapshot_date == today,
+async def _get_today_domino(db: AsyncSession, user_id: str) -> Task | None:
+    return (await db.execute(
+        select(Task).where(
+            Task.user_id == user_id,
+            Task.is_domino == True,
+            Task.deadline == date.today(),
         )
-    )).scalar_one_or_none()
-    if not snap:
-        snap = DailySnapshot(user_id=user_id, snapshot_date=today)
-        db.add(snap)
-        await db.commit()
-        await db.refresh(snap)
-    return snap
+    )).scalars().first()
 
 
 @router.get("", response_model=DominoResponse)
@@ -46,8 +49,10 @@ async def get_domino(
     current_user: Annotated[User, Depends(get_current_user)],
     db: AsyncSession = Depends(get_db),
 ):
-    snap = await _get_or_create_snapshot(db, str(current_user.id))
-    return DominoResponse(task=snap.domino_task, done=snap.domino_done or False, xp_earned=0)
+    task = await _get_today_domino(db, str(current_user.id))
+    if not task:
+        return DominoResponse(task=None, task_id=None, done=False, xp_earned=0)
+    return DominoResponse(task=task.title, task_id=task.id, done=task.is_completed, xp_earned=0)
 
 
 @router.post("/set", response_model=DominoResponse)
@@ -56,11 +61,30 @@ async def set_domino(
     current_user: Annotated[User, Depends(get_current_user)],
     db: AsyncSession = Depends(get_db),
 ):
-    snap = await _get_or_create_snapshot(db, str(current_user.id))
-    snap.domino_task = body.task
-    snap.domino_done = False
+    uid = str(current_user.id)
+    task = await _get_today_domino(db, uid)
+
+    if task and not task.is_completed:
+        task.title = body.task
+    else:
+        task = Task(
+            user_id=uid,
+            title=body.task,
+            deadline=date.today(),
+            is_completed=False,
+            is_domino=True,
+            estimated_minutes=0,
+            actual_minutes=0,
+            xp_reward=DOMINO_XP,
+        )
+        db.add(task)
+
     await db.commit()
-    return DominoResponse(task=snap.domino_task, done=False, xp_earned=0)
+    await db.refresh(task)
+    await clear_other_dominoes(db, uid, keep_task_id=task.id)
+    await sync_domino_snapshot(db, uid)
+
+    return DominoResponse(task=task.title, task_id=task.id, done=task.is_completed, xp_earned=0)
 
 
 @router.post("/complete", response_model=DominoResponse)
@@ -68,11 +92,20 @@ async def complete_domino(
     current_user: Annotated[User, Depends(get_current_user)],
     db: AsyncSession = Depends(get_db),
 ):
-    snap = await _get_or_create_snapshot(db, str(current_user.id))
+    uid = str(current_user.id)
+    task = await _get_today_domino(db, uid)
+    if not task:
+        return DominoResponse(task=None, task_id=None, done=False, xp_earned=0)
+
     xp = 0
-    if snap.domino_task and not snap.domino_done:
-        snap.domino_done = True
-        xp = 25
+    if not task.is_completed:
+        task.is_completed = True
+        task.completed_at = date.today()
+        xp = task.xp_reward
         await UserRepository(db).add_xp(current_user, xp)
-    await db.commit()
-    return DominoResponse(task=snap.domino_task, done=True, xp_earned=xp)
+        await db.commit()
+        await sync_domino_snapshot(db, uid)
+        if task.goal_id:
+            await update_goal_progress(db, task.goal_id, uid)
+
+    return DominoResponse(task=task.title, task_id=task.id, done=True, xp_earned=xp)

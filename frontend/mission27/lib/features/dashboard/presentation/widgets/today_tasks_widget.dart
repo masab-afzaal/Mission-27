@@ -6,6 +6,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_typography.dart';
 import '../../../../shared/widgets/m27_button.dart';
 import '../providers/tasks_provider.dart';
+import 'domino_task_widget.dart';
 import '../../../goals/presentation/pages/goals_page.dart';
 
 class TodayTasksWidget extends ConsumerWidget {
@@ -142,6 +143,7 @@ class _TaskRowState extends ConsumerState<_TaskRow> {
                     });
                   }
                   ref.read(todayTasksProvider.notifier).toggleTask(task.id, isNewCompleted);
+                  if (task.isDomino) ref.invalidate(dominoProvider);
                 },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
@@ -165,14 +167,24 @@ class _TaskRowState extends ConsumerState<_TaskRow> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      task.title,
-                      style: TextStyle(
-                        color: task.isCompleted ? AppColors.textTertiary : AppColors.textPrimary,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        decoration: task.isCompleted ? TextDecoration.lineThrough : null,
-                      ),
+                    Row(
+                      children: [
+                        if (task.isDomino) ...[
+                          const Text('🎯', style: TextStyle(fontSize: 13)),
+                          const SizedBox(width: 4),
+                        ],
+                        Expanded(
+                          child: Text(
+                            task.title,
+                            style: TextStyle(
+                              color: task.isCompleted ? AppColors.textTertiary : AppColors.textPrimary,
+                              fontSize: 14,
+                              fontWeight: task.isDomino ? FontWeight.w700 : FontWeight.w500,
+                              decoration: task.isCompleted ? TextDecoration.lineThrough : null,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 2),
                     Row(
@@ -215,7 +227,10 @@ class _TaskRowState extends ConsumerState<_TaskRow> {
               ),
               IconButton(
                 icon: const Icon(Icons.delete_outline_rounded, size: 18, color: AppColors.textTertiary),
-                onPressed: () => ref.read(todayTasksProvider.notifier).deleteTask(task.id),
+                onPressed: () {
+                  ref.read(todayTasksProvider.notifier).deleteTask(task.id);
+                  if (task.isDomino) ref.invalidate(dominoProvider);
+                },
               ),
             ],
           ),

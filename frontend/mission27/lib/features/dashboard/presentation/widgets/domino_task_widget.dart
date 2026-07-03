@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_typography.dart';
 import '../../../../core/network/api_client.dart';
+import '../providers/tasks_provider.dart';
 
 // ── Model & Provider ─────────────────────────────────────────────────────────
 
@@ -63,6 +64,7 @@ class _DominoTaskWidgetState extends ConsumerState<DominoTaskWidget> {
     try {
       await ref.read(dioProvider).post('/domino/complete');
       ref.invalidate(dominoProvider);
+      ref.invalidate(todayTasksProvider);
     } catch (_) {} finally {
       if (mounted) setState(() => _completing = false);
     }
@@ -76,6 +78,7 @@ class _DominoTaskWidgetState extends ConsumerState<DominoTaskWidget> {
       builder: (_) => _SetDominoSheet(onSet: (task) async {
         await ref.read(dioProvider).post('/domino/set', data: {'task': task});
         ref.invalidate(dominoProvider);
+        ref.invalidate(todayTasksProvider);
       }),
     );
   }

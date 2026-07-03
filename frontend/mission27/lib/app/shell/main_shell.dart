@@ -35,11 +35,18 @@ class _SideDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const items = [
-      _NavItem(label: 'Dashboard',  icon: Icons.home_outlined,       activeIcon: Icons.home_rounded,       route: AppRoutes.dashboard),
-      _NavItem(label: 'Goals',      icon: Icons.flag_outlined,       activeIcon: Icons.flag_rounded,       route: AppRoutes.goals),
-      _NavItem(label: 'Focus',      icon: Icons.timer_outlined,      activeIcon: Icons.timer_rounded,      route: AppRoutes.pomodoro),
-      _NavItem(label: 'Namaz',      icon: Icons.mosque_outlined,     activeIcon: Icons.mosque_rounded,     route: AppRoutes.namaz),
-      _NavItem(label: 'AI Coach',   icon: Icons.psychology_outlined, activeIcon: Icons.psychology_rounded, route: AppRoutes.aiCoach),
+      _NavItem(label: 'Today',      icon: Icons.home_outlined,           activeIcon: Icons.home_rounded,           route: AppRoutes.dashboard),
+      _NavItem(label: 'Goals',      icon: Icons.flag_outlined,           activeIcon: Icons.flag_rounded,           route: AppRoutes.goals),
+      _NavItem(label: 'Habits',     icon: Icons.repeat_rounded,          activeIcon: Icons.repeat_on_rounded,      route: AppRoutes.habits),
+      _NavItem(label: 'Focus',      icon: Icons.timer_outlined,          activeIcon: Icons.timer_rounded,          route: AppRoutes.pomodoro),
+      _NavItem(label: 'Namaz',      icon: Icons.mosque_outlined,         activeIcon: Icons.mosque_rounded,         route: AppRoutes.namaz),
+      _NavItem(label: 'IELTS',      icon: Icons.translate_outlined,      activeIcon: Icons.translate_rounded,      route: AppRoutes.ielts),
+      _NavItem(label: 'Mastery',    icon: Icons.school_outlined,         activeIcon: Icons.school_rounded,         route: AppRoutes.mastery),
+      _NavItem(label: 'Identities', icon: Icons.person_outline_rounded,  activeIcon: Icons.person_rounded,         route: AppRoutes.identities),
+      _NavItem(label: 'Knowledge',  icon: Icons.menu_book_outlined,      activeIcon: Icons.menu_book_rounded,      route: AppRoutes.knowledge),
+      _NavItem(label: 'Health',     icon: Icons.favorite_outline_rounded, activeIcon: Icons.favorite_rounded,      route: AppRoutes.health),
+      _NavItem(label: 'Social',     icon: Icons.people_outline_rounded,  activeIcon: Icons.people_rounded,         route: AppRoutes.social),
+      _NavItem(label: 'AI Coach',   icon: Icons.psychology_outlined,     activeIcon: Icons.psychology_rounded,     route: AppRoutes.aiCoach),
     ];
 
     return Drawer(
@@ -58,30 +65,34 @@ class _SideDrawer extends StatelessWidget {
               ]),
             ),
             const Divider(color: AppColors.border, height: 1),
-            const SizedBox(height: 8),
-            ...items.map((item) {
-              final isActive = currentLocation == item.route;
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                child: ListTile(
-                  leading: Icon(isActive ? item.activeIcon : item.icon,
-                      color: isActive ? AppColors.primary : AppColors.textSecondary, size: 22),
-                  title: Text(item.label, style: TextStyle(
-                    color: isActive ? AppColors.primary : AppColors.textPrimary,
-                    fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-                    fontSize: 15,
-                  )),
-                  selected: isActive,
-                  selectedTileColor: AppColors.primary.withOpacity(0.1),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  dense: true,
-                  onTap: () {
-                    Navigator.pop(context);
-                    context.go(item.route);
-                  },
-                ),
-              );
-            }),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                children: items.map((item) {
+                  final isActive = currentLocation == item.route;
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    child: ListTile(
+                      leading: Icon(isActive ? item.activeIcon : item.icon,
+                          color: isActive ? AppColors.primary : AppColors.textSecondary, size: 22),
+                      title: Text(item.label, style: TextStyle(
+                        color: isActive ? AppColors.primary : AppColors.textPrimary,
+                        fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+                        fontSize: 15,
+                      )),
+                      selected: isActive,
+                      selectedTileColor: AppColors.primary.withOpacity(0.1),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      dense: true,
+                      onTap: () {
+                        Navigator.pop(context);
+                        context.go(item.route);
+                      },
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
           ],
         ),
       ),
@@ -110,10 +121,10 @@ class _BottomNav extends StatelessWidget {
   const _BottomNav({required this.currentLocation});
 
   static const _items = [
-    _NavItem(label: 'Home',   icon: Icons.home_outlined,   activeIcon: Icons.home_rounded,   route: AppRoutes.dashboard),
-    _NavItem(label: 'Goals',  icon: Icons.flag_outlined,   activeIcon: Icons.flag_rounded,   route: AppRoutes.goals),
-    _NavItem(label: 'Focus',  icon: Icons.timer_outlined,  activeIcon: Icons.timer_rounded,  route: AppRoutes.pomodoro),
-    _NavItem(label: 'Namaz',  icon: Icons.mosque_outlined, activeIcon: Icons.mosque_rounded, route: AppRoutes.namaz),
+    _NavItem(label: 'Today',  icon: Icons.home_outlined,       activeIcon: Icons.home_rounded,       route: AppRoutes.dashboard),
+    _NavItem(label: 'Goals',  icon: Icons.flag_outlined,       activeIcon: Icons.flag_rounded,       route: AppRoutes.goals),
+    _NavItem(label: 'Focus',  icon: Icons.timer_outlined,      activeIcon: Icons.timer_rounded,      route: AppRoutes.pomodoro),
+    _NavItem(label: 'Coach',  icon: Icons.psychology_outlined, activeIcon: Icons.psychology_rounded, route: AppRoutes.aiCoach),
   ];
 
   @override

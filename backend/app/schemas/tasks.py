@@ -9,6 +9,7 @@ class TaskCreate(BaseModel):
     estimated_minutes: int = Field(default=0, ge=0)
     goal_id: Optional[str] = None
     domain: Optional[str] = None
+    is_domino: bool = False
 
 class TaskUpdate(BaseModel):
     title: Optional[str] = Field(None, min_length=1, max_length=255)
@@ -19,6 +20,7 @@ class TaskUpdate(BaseModel):
     actual_minutes: Optional[int] = Field(None, ge=0)
     goal_id: Optional[str] = None
     domain: Optional[str] = None
+    is_domino: Optional[bool] = None
 
 class TaskResponse(BaseModel):
     id: str
@@ -28,6 +30,7 @@ class TaskResponse(BaseModel):
     description: Optional[str] = None
     deadline: Optional[date] = None
     is_completed: bool
+    is_domino: bool
     completed_at: Optional[date] = None
     estimated_minutes: int
     actual_minutes: int
